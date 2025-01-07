@@ -15,7 +15,7 @@ st.set_page_config(page_title="All-about-Palestine", layout="wide")
 @st.cache_data
 def load_data():
     try:
-        file_path = '/content/drive/My Drive/path_to_your_file.csv
+        file_path = 'https://drive.google.com/file/d/18VphqS9AIq4ATu4vDGO2sX4DQnBF1F4g/view?usp=sharing'
         df = pd.read_csv("file_path")
         df.to_parquet("dataset.parquet")
         df = pd.read_parquet("dataset.parquet")
