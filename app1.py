@@ -7,16 +7,31 @@ from textblob import TextBlob
 from wordcloud import WordCloud
 
 
-
 # Konfigurasi halaman Streamlit
 st.set_page_config(page_title="All-about-Palestine", layout="wide")
+# Allow the user to upload a file
+uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx", "parquet"])
 
+if uploaded_file is not None:
+    try:
+        # Read the file depending on the extension
+        if uploaded_file.name.endswith('.csv'):
+            df = pd.read_csv(uploaded_file)
+        elif uploaded_file.name.endswith('.xlsx'):
+            df = pd.read_excel(uploaded_file)
+        elif uploaded_file.name.endswith('.parquet'):
+            df = pd.read_parquet(uploaded_file)
+        st.write(df)
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        # Show dataframe preview
+        st.write("### Data Preview")
+        st.write(df)
 # Fungsi untuk memuat data
 @st.cache_data
-def load_data():
+def load_data(df):
     try:
-        file_path = 'https://drive.google.com/file/d/18VphqS9AIq4ATu4vDGO2sX4DQnBF1F4g/view?usp=sharing'
-        df = pd.read_csv("file_path")
+        df = pd.read_csv(df)
         df.to_parquet("dataset.parquet")
         df = pd.read_parquet("dataset.parquet")
         df['created_time'] = pd.to_datetime(df['created_time'], errors='coerce')
