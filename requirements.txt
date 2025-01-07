@@ -1,2 +1,5 @@
 streamlit-option-menu
 matplotlib
+seaborn
+textblob
+wordcloud
