@@ -10,27 +10,13 @@ from wordcloud import WordCloud
 # Konfigurasi halaman Streamlit
 st.set_page_config(page_title="All-about-Palestine", layout="wide")
 # Allow the user to upload a file
-uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx", "parquet"])
 
-if uploaded_file is not None:
-    try:
-        # Read the file depending on the extension
-        if uploaded_file.name.endswith('.csv'):
-            df = pd.read_csv(uploaded_file)
-        elif uploaded_file.name.endswith('.xlsx'):
-            df = pd.read_excel(uploaded_file)
-        elif uploaded_file.name.endswith('.parquet'):
-            df = pd.read_parquet(uploaded_file)
-        st.write(df)
-    except Exception as e:
-        st.error(f"Error loading data: {e}")
-        # Show dataframe preview
-        st.write("### Data Preview")
-        st.write(df)
-# Fungsi untuk memuat data
 @st.cache_data
-def load_data(df):
+def load_data():
     try:
+       # Allow the user to upload a file
+        uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx", "parquet"])
+        
         if uploaded_file is not None:
             try:
                 # Read the file depending on the extension
@@ -40,9 +26,12 @@ def load_data(df):
                     df = pd.read_excel(uploaded_file)
                 elif uploaded_file.name.endswith('.parquet'):
                     df = pd.read_parquet(uploaded_file)
+        
+                # Display the dataframe
                 st.write(df)
+
         except Exception as e:
-        st.error(f"Error loading data: {e}")
+            st.error(f"Error loading data: {e}")
         # Show dataframe preview
         st.write("### Data Preview")
         st.write(df)
