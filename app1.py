@@ -5,16 +5,20 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from textblob import TextBlob
 from wordcloud import WordCloud
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from dotenv import load_dotenv
+import google.generativeai as gpt
+
 
 
 # Konfigurasi halaman Streamlit
 st.set_page_config(page_title="All-about-Palestine", layout="wide")
 
+# Fungsi untuk memuat data
+@st.cache_data
 def load_data():
     try:
-        #df = pd.read_csv("reddit_opinion_PSE_ISR_1.csv")
-        df.to_parquet("dataset.parquet")
-        df = pd.read_parquet("dataset.parquet")
+        df = pd.read_csv("reddit_opinion_PSE_ISR_1.csv")
         df.to_parquet("dataset.parquet")
         df = pd.read_parquet("dataset.parquet")
         df['created_time'] = pd.to_datetime(df['created_time'], errors='coerce')
@@ -46,6 +50,13 @@ def show_history():
 def show_sentiment_analysis(df):
     st.title("Sentiment Analysis")
     st.text("The world needs more justice and less war. Let's stand together for human rights")
+    # Inisialisasi VADER
+    load_dotenv()
+    GOOGLE_API_KEY = "AIzaSyBpFOCMIQO3-zwq-wxTbPOMM1acGTx-bgI"
+    
+        # Set up Google Gemini-Pro AI model
+    gpt.configure(api_key=GOOGLE_API_KEY)
+    analyzer = SentimentIntensityAnalyzer()
     
     # Kata kunci pro-Palestina dan pro-Israel
     pro_palestine_keywords = [
