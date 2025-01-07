@@ -31,6 +31,21 @@ if uploaded_file is not None:
 @st.cache_data
 def load_data(df):
     try:
+        if uploaded_file is not None:
+            try:
+                # Read the file depending on the extension
+                if uploaded_file.name.endswith('.csv'):
+                    df = pd.read_csv(uploaded_file)
+                elif uploaded_file.name.endswith('.xlsx'):
+                    df = pd.read_excel(uploaded_file)
+                elif uploaded_file.name.endswith('.parquet'):
+                    df = pd.read_parquet(uploaded_file)
+                st.write(df)
+        except Exception as e:
+        st.error(f"Error loading data: {e}")
+        # Show dataframe preview
+        st.write("### Data Preview")
+        st.write(df)
         df = pd.read_csv(df)
         df.to_parquet("dataset.parquet")
         df = pd.read_parquet("dataset.parquet")
