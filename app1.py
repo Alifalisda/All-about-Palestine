@@ -10,7 +10,6 @@ from wordcloud import WordCloud
 # Konfigurasi halaman Streamlit
 st.set_page_config(page_title="All-about-Palestine", layout="wide")
 
-@st.cache_data
 def load_data():
     try:
         # Allow the user to upload a file
