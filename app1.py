@@ -12,16 +12,9 @@ st.set_page_config(page_title="All-about-Palestine", layout="wide")
 
 def load_data():
     try:
-        # Allow the user to upload a file
-        uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx", "parquet"])
-        if uploaded_file.name.endswith('.csv'):
-            df = pd.read_csv(uploaded_file)
-        elif uploaded_file.name.endswith('.xlsx'):
-            df = pd.read_excel(uploaded_file)
-        elif uploaded_file.name.endswith('.parquet'):
-            df = pd.read_parquet(uploaded_file)
-    
-        df = pd.read_csv(df)
+        #df = pd.read_csv("reddit_opinion_PSE_ISR_1.csv")
+        df.to_parquet("dataset.parquet")
+        df = pd.read_parquet("dataset.parquet")
         df.to_parquet("dataset.parquet")
         df = pd.read_parquet("dataset.parquet")
         df['created_time'] = pd.to_datetime(df['created_time'], errors='coerce')
