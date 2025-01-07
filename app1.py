@@ -12,7 +12,6 @@ from wordcloud import WordCloud
 st.set_page_config(page_title="All-about-Palestine", layout="wide")
 
 # Fungsi untuk memuat data
-@st.cache_data
 def load_data():
     try:
         df = pd.read_csv("reddit_opinion_PSE_ISR_1.csv")
