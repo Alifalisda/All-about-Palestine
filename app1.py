@@ -30,11 +30,6 @@ def load_data():
                 # Display the dataframe
                 st.write(df)
 
-        except Exception as e:
-            st.error(f"Error loading data: {e}")
-        # Show dataframe preview
-        st.write("### Data Preview")
-        st.write(df)
         df = pd.read_csv(df)
         df.to_parquet("dataset.parquet")
         df = pd.read_parquet("dataset.parquet")
