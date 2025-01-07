@@ -15,6 +15,8 @@ st.set_page_config(page_title="All-about-Palestine", layout="wide")
 @st.cache_data
 def load_data():
     try:
+        df = pd.read_csv("reddit_opinion_PSE_ISR_1.csv")
+        df.to_parquet("dataset.parquet")
         df = pd.read_parquet("dataset.parquet")
         df['created_time'] = pd.to_datetime(df['created_time'], errors='coerce')
         df['post_created_time'] = pd.to_datetime(df['post_created_time'], errors='coerce')
