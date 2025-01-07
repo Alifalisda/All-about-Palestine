@@ -10,26 +10,32 @@ from wordcloud import WordCloud
 # Konfigurasi halaman Streamlit
 st.set_page_config(page_title="All-about-Palestine", layout="wide")
 # Allow the user to upload a file
+def load_dataset(uploaded_file):
+    try:
+        # Read the file depending on the extension
+        if uploaded_file.name.endswith('.csv'):
+            df = pd.read_csv(uploaded_file)
+        elif uploaded_file.name.endswith('.xlsx'):
+            df = pd.read_excel(uploaded_file)
+        elif uploaded_file.name.endswith('.parquet'):
+            df = pd.read_parquet(uploaded_file)
+        
+        return df  # Mengembalikan DataFrame yang sudah dibaca
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        return None  # Jika terjadi error, mengembalikan None
+
+
 
 @st.cache_data
 def load_data():
     try:
-       # Allow the user to upload a file
+        # Allow the user to upload a file
         uploaded_file = st.file_uploader("Choose a file", type=["csv", "xlsx", "parquet"])
-        
         if uploaded_file is not None:
-            try:
-                # Read the file depending on the extension
-                if uploaded_file.name.endswith('.csv'):
-                    df = pd.read_csv(uploaded_file)
-                elif uploaded_file.name.endswith('.xlsx'):
-                    df = pd.read_excel(uploaded_file)
-                elif uploaded_file.name.endswith('.parquet'):
-                    df = pd.read_parquet(uploaded_file)
-        
-                # Display the dataframe
-                st.write(df)
-
+            # Panggil fungsi load_data untuk membaca file
+            df = load_dataset(uploaded_file)
+    
         df = pd.read_csv(df)
         df.to_parquet("dataset.parquet")
         df = pd.read_parquet("dataset.parquet")
