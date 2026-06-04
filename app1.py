@@ -36,10 +36,12 @@ def show_home():
 # Fungsi untuk menampilkan sejarah
 def show_history():
     st.title("The History")
-    st.markdown("""
-        <iframe width="600" height="1068" src="https://datastudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/p_abraimownd" 
-        width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
-    """, unsafe_allow_html=True)
+    st.components.v1.iframe(
+        src="https://datastudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/p_abraimownd",
+        width=None,
+        height=1068,
+        scrolling=True
+    )
 
 # Fungsi untuk menampilkan analisis sentimen
 def show_sentiment_analysis(df):
