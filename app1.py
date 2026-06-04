@@ -6,273 +6,393 @@ import seaborn as sns
 from textblob import TextBlob
 from wordcloud import WordCloud
 
+# ─────────────────────────────────────────────
+# PAGE CONFIG
+# ─────────────────────────────────────────────
+st.set_page_config(
+    page_title="All-about-Palestine",
+    layout="wide",
+    initial_sidebar_state="auto"  # auto-collapse on mobile
+)
+
+# ─────────────────────────────────────────────
+# GLOBAL RESPONSIVE CSS
+# ─────────────────────────────────────────────
+st.markdown("""
+<style>
+    /* Hide default Streamlit footer & menu */
+    #MainMenu, footer { visibility: hidden; }
+
+    /* Responsive font scaling */
+    html { font-size: clamp(12px, 2vw, 16px); }
+
+    /* Responsive block container padding */
+    .block-container {
+        padding: clamp(0.5rem, 2vw, 2rem) !important;
+        max-width: 100% !important;
+    }
+
+    /* Sidebar width responsive */
+    [data-testid="stSidebar"] {
+        min-width: 200px !important;
+        max-width: 260px !important;
+    }
+
+    /* Responsive dataframe */
+    [data-testid="stDataFrame"] {
+        width: 100% !important;
+        overflow-x: auto !important;
+    }
+
+    /* Responsive charts */
+    [data-testid="stpyplot"] {
+        width: 100% !important;
+    }
+
+    /* Responsive iframe wrapper */
+    .iframe-wrapper {
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    /* Responsive title */
+    h1 { font-size: clamp(1.2rem, 4vw, 2.5rem) !important; }
+    h2 { font-size: clamp(1rem, 3vw, 1.8rem) !important; }
+    h3 { font-size: clamp(0.9rem, 2.5vw, 1.4rem) !important; }
+
+    /* Better button styling */
+    .stButton > button {
+        width: 100%;
+        border-radius: 8px;
+        font-size: clamp(0.8rem, 1.5vw, 1rem);
+    }
+
+    /* Responsive text area */
+    .stTextArea textarea {
+        color: white;
+        font-size: clamp(0.8rem, 1.5vw, 1rem);
+    }
+
+    /* Responsive slider */
+    .stSlider { width: 100% !important; }
+
+    /* Responsive multiselect */
+    .stMultiSelect { width: 100% !important; }
+</style>
+""", unsafe_allow_html=True)
 
 
-# Konfigurasi halaman Streamlit
-st.set_page_config(page_title="All-about-Palestine", layout="wide")
-
-# Fungsi untuk memuat data
+# ─────────────────────────────────────────────
+# LOAD DATA
+# ─────────────────────────────────────────────
+@st.cache_data(show_spinner="Loading dataset...")
 def load_data():
     try:
         df = pd.read_csv("reddit_opinion_PSE_ISR_1.csv")
         df.to_parquet("dataset.parquet")
         df = pd.read_parquet("dataset.parquet")
-        df['created_time'] = pd.to_datetime(df['created_time'], errors='coerce')
-        df['post_created_time'] = pd.to_datetime(df['post_created_time'], errors='coerce')
-        df['user_account_created_time'] = pd.to_datetime(df['user_account_created_time'], errors='coerce')
+        for col in ['created_time', 'post_created_time', 'user_account_created_time']:
+            df[col] = pd.to_datetime(df[col], errors='coerce')
         return df
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return pd.DataFrame()
 
-# Fungsi untuk menampilkan beranda
+
+# ─────────────────────────────────────────────
+# HOME
+# ─────────────────────────────────────────────
 def show_home():
-    st.markdown("""
-        <iframe 
-            src="https://lookerstudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/JgD" 
-            width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
-    """, unsafe_allow_html=True)
-
-# Fungsi untuk menampilkan sejarah
-def show_history():
-    st.title("The History")
-
     st.components.v1.html(
         """
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            
-            .wrapper {
-                width: 100%;
-                height: calc(100vh - 80px); /* minus title height */
-            }
-            
-            iframe {
-                width: 100%;
-                height: 100%;
-                border: none;
-            }
+            .wrapper { width: 100%; }
+            iframe { width: 100%; border: none; display: block; }
         </style>
-
         <div class="wrapper">
             <iframe
+                id="home-frame"
+                src="https://lookerstudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/JgD"
+                allowfullscreen>
+            </iframe>
+        </div>
+        <script>
+            function resizeFrame() {
+                const vh = window.innerHeight;
+                const frame = document.getElementById('home-frame');
+                frame.style.height = vh + 'px';
+                if (window.frameElement) {
+                    window.frameElement.style.height = vh + 'px';
+                    window.frameElement.setAttribute('height', vh);
+                }
+            }
+            resizeFrame();
+            window.addEventListener('resize', resizeFrame);
+        </script>
+        """,
+        height=700,
+        scrolling=False
+    )
+
+
+# ─────────────────────────────────────────────
+# HISTORY
+# ─────────────────────────────────────────────
+def show_history():
+    st.title("The History")
+    st.components.v1.html(
+        """
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            .wrapper { width: 100%; }
+            iframe { width: 100%; border: none; display: block; }
+        </style>
+        <div class="wrapper">
+            <iframe
+                id="history-frame"
                 src="https://datastudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/p_abraimownd"
                 allowfullscreen>
             </iframe>
         </div>
-
         <script>
-            // Set container Streamlit height = viewport height
-            const wrapper = document.querySelector('.wrapper');
-            const vh = window.innerHeight;
-            wrapper.style.height = (vh - 80) + 'px';
-            
-            // Update juga parent iframe (Streamlit container)
-            if (window.frameElement) {
-                window.frameElement.style.height = vh + 'px';
-                window.frameElement.setAttribute('height', vh);
-            }
-            
-            // Handle resize (rotate device, dll)
-            window.addEventListener('resize', () => {
-                const newVh = window.innerHeight;
-                wrapper.style.height = (newVh - 80) + 'px';
+            function resizeFrame() {
+                const vh = window.innerHeight;
+                const titleOffset = 80;
+                const frame = document.getElementById('history-frame');
+                frame.style.height = (vh - titleOffset) + 'px';
                 if (window.frameElement) {
-                    window.frameElement.style.height = newVh + 'px';
-                    window.frameElement.setAttribute('height', newVh);
+                    window.frameElement.style.height = vh + 'px';
+                    window.frameElement.setAttribute('height', vh);
                 }
-            });
+            }
+            resizeFrame();
+            window.addEventListener('resize', resizeFrame);
         </script>
         """,
-        height=700,  # initial fallback, JS akan override ini
+        height=700,
         scrolling=False
     )
-# Fungsi untuk menampilkan analisis sentimen
+
+
+# ─────────────────────────────────────────────
+# SENTIMENT ANALYSIS
+# ─────────────────────────────────────────────
+PRO_PALESTINE_KW = [
+    "palestine", "gaza", "free palestine", "apartheid", "nakba",
+    "zionist aggression", "ethnic cleansing", "end occupation",
+    "save al-aqsa", "boycott israel", "humanitarian crisis in gaza",
+    "illegal settlements", "palestinian solidarity", "massacres in palestine",
+    "zionist crimes", "zionist"
+]
+
+PRO_ISRAEL_KW = [
+    "hate israel", "idf", "hamas terrorism", "zionism", "jewish state",
+    "defend israel", "iranian proxies", "rocket attacks", "security for israel",
+    "stop hamas", "iran's threat to israel", "peace accords",
+    "abraham accords", "holocaust remembrance", "justice for israel",
+    "right to defend", "hamas aggression"
+]
+
+
+def assign_sentiment_category(row):
+    title = row['post_title'].lower()
+    score = row['post_sentiment']
+    is_pal = any(kw in title for kw in PRO_PALESTINE_KW)
+    is_isr = any(kw in title for kw in PRO_ISRAEL_KW)
+
+    if is_pal:
+        if score > 0.3:   return 'Positive (Pro-Palestine)'
+        if score < -0.3:  return 'Negative (Pro-Palestine)'
+        return 'Neutral (Pro-Palestine)'
+    if is_isr:
+        if score > 0.3:   return 'Positive (Pro-Israel)'
+        if score < -0.3:  return 'Negative (Pro-Israel)'
+        return 'Neutral (Pro-Israel)'
+    if score > 0.3:  return 'Positive'
+    if score < -0.3: return 'Negative'
+    return 'Neutral'
+
+
 def show_sentiment_analysis(df):
     st.title("Sentiment Analysis")
-    st.text("The world needs more justice and less war. Let's stand together for human rights")
-    
-    # Kata kunci pro-Palestina dan pro-Israel
-    pro_palestine_keywords = [
-    "palestine", "gaza", "free palestine", "apartheid", "nakba", "zionist aggression", 
-    "ethnic cleansing", "end occupation", "save al-aqsa", "boycott israel", 
-    "humanitarian crisis in gaza", "illegal settlements", "palestinian solidarity", 
-    "massacres in palestine", "zionist crimes", "zionist"
-    ]
+    st.caption("The world needs more justice and less war. "
+               "Let's stand together for human rights.")
 
-    pro_israel_keywords = [
-        "hate israel", "idf", "hamas terrorism", "zionism", "jewish state", "defend israel", 
-        "iranian proxies", "rocket attacks", "security for israel", "stop hamas", 
-        "iran's threat to israel", "peace accords", "abraham accords", "holocaust remembrance",
-        "justice for israel", "right to defend", "hamas aggression"
-    ]
-
-    # Pastikan kolom post_title tidak memiliki nilai None/NaN
-    df['post_title'] = df['post_title'].fillna('')  # Mengganti NaN dengan string kosong
-
-    # Menambahkan kolom post_sentiment (skor sentimen) menggunakan TextBlob
+    # ── Preprocessing ──────────────────────────────
+    df['post_title'] = df['post_title'].fillna('')
     df['post_sentiment'] = df['post_title'].apply(
-        lambda text: TextBlob(text).sentiment.polarity if text else 0  # Jika teks kosong, skor sentimen 0
+        lambda t: TextBlob(t).sentiment.polarity if t else 0
     )
+    df['post_sentiment_category'] = df.apply(assign_sentiment_category, axis=1)
 
-    # Menambahkan kategori berdasarkan kata kunci dan nilai sentimen
-    df['post_sentiment_category'] = df.apply(
-    lambda row: (
-        # Jika ada kata kunci pro-Palestine
-        'Positive (Pro-Palestine)' if any(keyword in row['post_title'].lower() for keyword in pro_palestine_keywords) and row['post_sentiment'] > 0.3 else
-        # Jika ada kata kunci pro-Israel
-        'Positive (Pro-Israel)' if any(keyword in row['post_title'].lower() for keyword in pro_israel_keywords) and row['post_sentiment'] > 0.3 else
-        # Jika ada kata kunci pro-Palestine
-        'Negative (Pro-Palestine)' if any(keyword in row['post_title'].lower() for keyword in pro_palestine_keywords) and row['post_sentiment'] < -0.3 else
-        # Jika ada kata kunci pro-Israel
-        'Negative (Pro-Israel)' if any(keyword in row['post_title'].lower() for keyword in pro_israel_keywords) and row['post_sentiment'] < -0.3 else
-        # Jika ada kata kunci pro-Palestine
-        'Neutral (Pro-Palestine)' if any(keyword in row['post_title'].lower() for keyword in pro_palestine_keywords) and -0.3 <= row['post_sentiment'] <= 0.3 else
-        # Jika ada kata kunci pro-Israel
-        'Neutral (Pro-Israel)' if any(keyword in row['post_title'].lower() for keyword in pro_israel_keywords) and -0.3 <= row['post_sentiment'] <= 0.3 else
-        # Fallback ke nilai sentimen jika tidak ada kata kunci
-        'Positive' if row['post_sentiment'] > 0.3 else
-        'Negative' if row['post_sentiment'] < -0.3 else
-        'Neutral'
-    ),
-    axis=1
-)
-    # Filter sentimen
-    sentiment_filter = st.sidebar.multiselect(
-        "Select Sentiment to Display:",
-        options=df['post_sentiment_category'].unique(),
-        default=df['post_sentiment_category'].unique()
-    )
-    filtered_data = df[df['post_sentiment_category'].isin(sentiment_filter)]
-    dataframe = filtered_data.drop(columns=['comment_id', 'score', 'post_id','controversiality',
-                                        'user_account_created_time', 'post_upvote_ratio','post_thumbs_ups','post_created_time'])
-    st.dataframe(dataframe)
+    # ── Sidebar filters ────────────────────────────
+    with st.sidebar:
+        st.markdown("### Filters")
+        sentiment_filter = st.multiselect(
+            "Sentiment Category",
+            options=sorted(df['post_sentiment_category'].unique()),
+            default=list(df['post_sentiment_category'].unique())
+        )
 
-    # Bar chart: Popular subreddits
-    st.subheader("Top Popular Subreddits")
-    fig, ax = plt.subplots(figsize=(10, 6))
-    popular_subreddits = df['subreddit'].value_counts().reset_index()
-    popular_subreddits.columns = ['subreddit', 'count']
-    sns.barplot(x='count', y='subreddit', data=popular_subreddits, palette='magma', ax=ax)
-    ax.set_title('Top Popular Subreddits')
-    ax.set_xlabel('Count')
-    ax.set_ylabel('Subreddit')
-    st.pyplot(fig)
+    filtered = df[df['post_sentiment_category'].isin(sentiment_filter)]
 
-    # Pie chart: Sentiment distribution
-    st.subheader("Sentiment Distribution")
-    fig, ax = plt.subplots(figsize=(7,7),dpi=200)
-    sentiment_counts = filtered_data['post_sentiment_category'].value_counts()
-    # Menghitung distribusi sentimen
-    total = sentiment_counts.sum()
+    # ── KPI cards ──────────────────────────────────
+    total    = len(filtered)
+    positive = len(filtered[filtered['post_sentiment_category'].str.startswith('Positive')])
+    negative = len(filtered[filtered['post_sentiment_category'].str.startswith('Negative')])
+    neutral  = len(filtered[filtered['post_sentiment_category'].str.startswith('Neutral')])
 
-    # Menghitung persentase
-    sentiment_percentages = (sentiment_counts / total) * 100
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total Posts", f"{total:,}")
+    c2.metric("Positive", f"{positive:,}")
+    c3.metric("Negative", f"{negative:,}")
+    c4.metric("Neutral",  f"{neutral:,}")
 
-    # Gabungkan kategori dengan persentase < 1% menjadi "Others"
-    sentiment_counts_combined = sentiment_counts[sentiment_percentages >= 2]
-    others_count = sentiment_counts[sentiment_percentages < 2].sum()
+    st.divider()
 
-    # Tambahkan kategori "Others" jika ada
-    if others_count > 0:
-        sentiment_counts_combined["Others(percentages < 2%)"] = others_count
-    
-    # Membuat pie chart
-    ax.pie(
-        sentiment_counts_combined,
-        labels=sentiment_counts_combined.index,
-        autopct='%1.0f%%',
-        explode=[0.03] * len(sentiment_counts_combined),
-        startangle=90,
-        textprops={'fontsize': 5},  # Ukuran font label lebih kecil
-        labeldistance=1.05 # Jarak label dari pusat pie
-    )
-    
-    ax.set_title('Sentiment Distribution | Posts')
-    st.pyplot(fig)
+    # ── Dataframe ──────────────────────────────────
+    with st.expander("📄 View Data", expanded=False):
+        drop_cols = [c for c in ['comment_id','score','post_id','controversiality',
+                                  'user_account_created_time','post_upvote_ratio',
+                                  'post_thumbs_ups','post_created_time'] if c in filtered.columns]
+        st.dataframe(filtered.drop(columns=drop_cols), use_container_width=True)
+
+    # ── Charts: 2-column on desktop, 1-column on mobile ──
+    col_left, col_right = st.columns([1, 1], gap="medium")
+
+    with col_left:
+        st.subheader("Top Subreddits")
+        top_sub = df['subreddit'].value_counts().head(15).reset_index()
+        top_sub.columns = ['subreddit', 'count']
+        fig1, ax1 = plt.subplots(figsize=(6, 5))
+        sns.barplot(x='count', y='subreddit', data=top_sub, palette='magma', ax=ax1)
+        ax1.set_title('Top 15 Subreddits')
+        ax1.set_xlabel('Count')
+        ax1.set_ylabel('')
+        fig1.tight_layout()
+        st.pyplot(fig1, use_container_width=True)
+        plt.close(fig1)
+
+    with col_right:
+        st.subheader("Sentiment Distribution")
+        sent_counts = filtered['post_sentiment_category'].value_counts()
+        total_s     = sent_counts.sum()
+        pct         = (sent_counts / total_s) * 100
+        combined    = sent_counts[pct >= 2].copy()
+        others      = sent_counts[pct < 2].sum()
+        if others > 0:
+            combined["Others (<2%)"] = others
+
+        fig2, ax2 = plt.subplots(figsize=(6, 5))
+        ax2.pie(
+            combined,
+            labels=combined.index,
+            autopct='%1.0f%%',
+            explode=[0.03] * len(combined),
+            startangle=90,
+            textprops={'fontsize': 7},
+            labeldistance=1.08
+        )
+        ax2.set_title('Sentiment Distribution | Posts')
+        fig2.tight_layout()
+        st.pyplot(fig2, use_container_width=True)
+        plt.close(fig2)
+
+    st.divider()
+
+    # ── WordCloud ──────────────────────────────────
+    st.subheader("WordCloud by Date")
     df['created_time'] = pd.to_datetime(df['created_time'])
-    min_date = df['created_time'].min().date()
-    max_date = df['created_time'].max().date()
+    min_d = df['created_time'].min().date()
+    max_d = df['created_time'].max().date()
 
-    # Slider untuk memilih tanggal
-    selected_date = st.slider("Select a date", min_value=min_date, max_value=max_date, value=min_date, format="YYYY-MM-DD")
+    selected_date = st.slider(
+        "Select date",
+        min_value=min_d, max_value=max_d, value=min_d,
+        format="YYYY-MM-DD"
+    )
 
-    # Filter dataset berdasarkan tanggal yang dipilih
-    # Pastikan selected_date adalah tipe datetime.date
-    filtered_df = df[df['created_time'].dt.date == selected_date]
+    day_df  = df[df['created_time'].dt.date == selected_date]
+    text    = " ".join(day_df['self_text'].dropna())
 
-    # Gabungkan teks dari kolom 'self_text'
-    combined_text = " ".join(filtered_df['self_text'].dropna())
-
-    # Generate WordCloud
-    if combined_text.strip():  # Pastikan teks tidak kosong
-        wordcloud = WordCloud(width=800, height=400, background_color='white').generate(combined_text)
-        
-        # Tampilkan WordCloud
-        st.subheader(f"WordCloud for {selected_date}")
-        fig, ax = plt.subplots(figsize=(10, 5))
-        ax.imshow(wordcloud, interpolation='bilinear')
-        ax.axis("off")
-        st.pyplot(fig)
+    if text.strip():
+        wc  = WordCloud(width=800, height=400, background_color='white').generate(text)
+        fig3, ax3 = plt.subplots(figsize=(10, 4))
+        ax3.imshow(wc, interpolation='bilinear')
+        ax3.axis("off")
+        ax3.set_title(f"WordCloud — {selected_date}", fontsize=12)
+        fig3.tight_layout()
+        st.pyplot(fig3, use_container_width=True)
+        plt.close(fig3)
     else:
-        st.warning("No text available for the selected date!")
+        st.info(f"No text data available for {selected_date}.")
 
+
+# ─────────────────────────────────────────────
+# CHECK REDDIT SENTIMENT
+# ─────────────────────────────────────────────
 def check_reddit_sentiment():
     st.title("Check Your Reddit Sentiment")
-    st.text("Input your Reddit post or comment to analyze its sentiment.")
-    st.markdown("""
-    <style>
-    .stTextArea textarea {
-        color: white;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    # Input teks dari pengguna
-    user_input = st.text_area("Enter your Reddit text here:",)
-    if st.button("Submit"):
-        if user_input:
-            # Identifikasi sentimen menggunakan TextBlob
-            sentiment_score = TextBlob(user_input).sentiment.polarity
-            if sentiment_score > 0:
-                sentiment = "Positive"
-            elif sentiment_score < 0:
-                sentiment = "Negative"
+    st.caption("Input your Reddit post or comment to analyze its sentiment.")
+
+    user_input = st.text_area("Enter your Reddit text here:", height=150)
+
+    if st.button("Analyze Sentiment", type="primary"):
+        if user_input.strip():
+            score = TextBlob(user_input).sentiment.polarity
+            subj  = TextBlob(user_input).sentiment.subjectivity
+
+            if score > 0.3:
+                label, color, icon = "Positive 😊", "green", "✅"
+            elif score < -0.3:
+                label, color, icon = "Negative 😔", "red", "⚠️"
             else:
-                sentiment = "Neutral"
+                label, color, icon = "Neutral 😐", "gray", "ℹ️"
 
-            # Tampilkan hasil sentimen
-            st.subheader("Sentiment Result")
-            st.write(f"The sentiment of your text is **{sentiment}**.")
-            st.write(f"Sentiment Score: {sentiment_score:.2f}")
+            st.divider()
+            c1, c2, c3 = st.columns(3)
+            c1.metric(f"{icon} Sentiment", label)
+            c2.metric("Polarity Score", f"{score:.2f}", help="-1 (negative) to +1 (positive)")
+            c3.metric("Subjectivity", f"{subj:.2f}", help="0 (objective) to 1 (subjective)")
+
+            # Visual bar
+            st.progress(
+                int((score + 1) / 2 * 100),
+                text=f"Sentiment polarity: {score:.2f}"
+            )
         else:
-            st.warning("Please enter some text before submitting.")
+            st.warning("Please enter some text before analyzing.")
 
-# Fungsi utama
+
+# ─────────────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────────────
 def main():
     df = load_data()
 
     # Preprocessing
-    start_date = pd.to_datetime('2023-10-07')
-    df = df.dropna(subset=['created_time', 'post_created_time'])
-    df = df[(df['post_created_time'] >= start_date) & (df['created_time'] >= start_date)]
-    df.isnull().sum().sum()
-    #df = df.drop(columns=['ups', 'post_thumbs_ups', 'downs','post_total_awards_received',
-                                        #'user_awardee_karma', 'user_awarder_karma','user_link_karma', 'user_comment_karma'])
-    #df = df.iloc[:10000]
-    if 'post_title' in df.columns:
-        df=df[(~df['post_title'].isna())]
-        df = df.drop_duplicates(subset=['post_title'])
-        df['post_sentiment'] = df['post_title'].apply(lambda x: TextBlob(str(x)).sentiment.polarity)
-        # Assign sentiment category based on sentiment score
-        df['post_sentiment_category'] = df['post_sentiment'].apply(lambda x: 'Positive' if x > 0 else ('Negative' if x < 0 else 'Neutral'))
-    else:
-        st.warning("Column 'post_title' is missing. Sentiment analysis will not be available.")
+    if not df.empty:
+        start_date = pd.to_datetime('2023-10-07')
+        df = df.dropna(subset=['created_time', 'post_created_time'])
+        df = df[(df['post_created_time'] >= start_date) & (df['created_time'] >= start_date)]
 
-    # Sidebar menu
+        if 'post_title' in df.columns:
+            df = df[df['post_title'].notna()]
+            df = df.drop_duplicates(subset=['post_title'])
+            df['post_sentiment'] = df['post_title'].apply(
+                lambda x: TextBlob(str(x)).sentiment.polarity
+            )
+            df['post_sentiment_category'] = df['post_sentiment'].apply(
+                lambda x: 'Positive' if x > 0 else ('Negative' if x < 0 else 'Neutral')
+            )
+
+    # Sidebar navigation
     with st.sidebar:
         app = option_menu(
             menu_title="All-about-Palestine",
-            options=["Home", "History","Sentiment Analysis"],
+            options=["Home", "History", "Sentiment Analysis"],
             icons=["house", "clock-history", "graph-up-arrow"],
             styles={
                 "container": {"padding": "5!important"},
@@ -281,25 +401,30 @@ def main():
             }
         )
 
-    # Navigation
+    # Routing
     if app == "Home":
         show_home()
+
     elif app == "History":
         show_history()
+
     elif app == "Sentiment Analysis":
         with st.sidebar:
             sentiment_menu = option_menu(
-                menu_title="Choose an option:", 
+                menu_title="Choose an option:",
                 options=["Analysis Data", "Check Your Reddit"],
+                icons=["bar-chart", "chat-text"],
                 styles={
                     "container": {"padding": "5!important"},
                     "icon": {"color": "orange"},
-                    "nav-link": {"font-size": "14px"}},
+                    "nav-link": {"font-size": "14px"}
+                }
             )
         if sentiment_menu == "Analysis Data":
             show_sentiment_analysis(df)
         elif sentiment_menu == "Check Your Reddit":
             check_reddit_sentiment()
+
 
 if __name__ == "__main__":
     main()
