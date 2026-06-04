@@ -37,7 +37,8 @@ def show_home():
 def show_history():
     st.title("The History")
     st.markdown("""
-        <iframe width="600" height="1068" src="https://datastudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/p_abraimownd" frameborder="0" style="border:0" allowfullscreen sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+        <iframe width="600" height="1068" src="https://datastudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/p_abraimownd" 
+        width="100%" height="800px" style="border:none;" allowfullscreen></iframe>
     """, unsafe_allow_html=True)
 
 # Fungsi untuk menampilkan analisis sentimen
