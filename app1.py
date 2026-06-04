@@ -35,20 +35,58 @@ def show_home():
 
 # Fungsi untuk menampilkan sejarah
 def show_history():
-     # Slider untuk testing height yang pas
-    if st.checkbox("Adjust height (dev mode)"):
-        h = st.slider("iframe height", 500, 5000, 3000, step=100)
-    else:
-        h = 3000  # set ke nilai final setelah ketemu yang pas
-        
     st.title("The History")
-    st.components.v1.iframe(
-        src="https://datastudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/p_abraimownd",
-        width=None,
-        height=h,
-        scrolling=True
-    )
 
+    st.components.v1.html(
+        """
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            
+            .wrapper {
+                width: 100%;
+                height: calc(100vh - 80px); /* minus title height */
+            }
+            
+            iframe {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+        </style>
+
+        <div class="wrapper">
+            <iframe
+                src="https://datastudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/p_abraimownd"
+                allowfullscreen>
+            </iframe>
+        </div>
+
+        <script>
+            // Set container Streamlit height = viewport height
+            const wrapper = document.querySelector('.wrapper');
+            const vh = window.innerHeight;
+            wrapper.style.height = (vh - 80) + 'px';
+            
+            // Update juga parent iframe (Streamlit container)
+            if (window.frameElement) {
+                window.frameElement.style.height = vh + 'px';
+                window.frameElement.setAttribute('height', vh);
+            }
+            
+            // Handle resize (rotate device, dll)
+            window.addEventListener('resize', () => {
+                const newVh = window.innerHeight;
+                wrapper.style.height = (newVh - 80) + 'px';
+                if (window.frameElement) {
+                    window.frameElement.style.height = newVh + 'px';
+                    window.frameElement.setAttribute('height', newVh);
+                }
+            });
+        </script>
+        """,
+        height=700,  # initial fallback, JS akan override ini
+        scrolling=False
+    )
 # Fungsi untuk menampilkan analisis sentimen
 def show_sentiment_analysis(df):
     st.title("Sentiment Analysis")
