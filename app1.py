@@ -35,11 +35,17 @@ def show_home():
 
 # Fungsi untuk menampilkan sejarah
 def show_history():
+     # Slider untuk testing height yang pas
+    if st.checkbox("Adjust height (dev mode)"):
+        h = st.slider("iframe height", 500, 5000, 3000, step=100)
+    else:
+        h = 3000  # set ke nilai final setelah ketemu yang pas
+        
     st.title("The History")
     st.components.v1.iframe(
         src="https://datastudio.google.com/embed/reporting/34102220-751f-4e6c-864f-f42ddd08ef39/page/p_abraimownd",
         width=None,
-        height=1068,
+        height=h,
         scrolling=True
     )
 
